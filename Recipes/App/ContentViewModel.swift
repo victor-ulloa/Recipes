@@ -11,7 +11,7 @@ import Combine
 final class ContentViewModel: ObservableObject {
     @Published var recipes: [Recipe] = []
     @Published var errorMessage: IdentifiableError?
-    
+
     private var cancellables = Set<AnyCancellable>()
     private let networkManager = NetworkManager()
     
@@ -26,34 +26,40 @@ final class ContentViewModel: ObservableObject {
             })
             .store(in: &cancellables)
     }
-    
-    func deleteRecipe(at offsets: IndexSet) {
-        offsets.forEach { index in
-            let recipeToDelete = recipes[index]
-            
-            networkManager.deleteRecipe(by: recipeToDelete.id)
-                .sink(receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        self.errorMessage = IdentifiableError(message: error.localizedDescription)
-                    }
-                }, receiveValue: { [weak self] in
-                    self?.recipes.remove(at: index)
-                })
-                .store(in: &cancellables)
-        }
+
+    func deleteRecipe(id: Int) {
+        networkManager.deleteRecipe(id: id)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    self.errorMessage = IdentifiableError(message: error.localizedDescription)
+                }
+            }, receiveValue: { [weak self] in
+                self?.recipes.removeAll { $0.id == id }
+            })
+            .store(in: &cancellables)
     }
-    
-    func addRecipe(_ recipe: Recipe) {
-        networkManager.addRecipe(recipe)
+
+    func createRecipe(_ recipe: Recipe) {
+        networkManager.createRecipe(recipe)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
                     self.errorMessage = IdentifiableError(message: error.localizedDescription)
                 }
             }, receiveValue: { [weak self] newRecipe in
-                if let recipe = newRecipe {
-                    self?.recipes.append(recipe)
-                } else {
-                    self?.recipes.append(recipe) // Add the original recipe for local display
+                self?.recipes.append(newRecipe)
+            })
+            .store(in: &cancellables)
+    }
+
+    func editRecipe(_ recipe: Recipe) {
+        networkManager.editRecipe(recipe)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    self.errorMessage = IdentifiableError(message: error.localizedDescription)
+                }
+            }, receiveValue: { [weak self] updatedRecipe in
+                if let index = self?.recipes.firstIndex(where: { $0.id == updatedRecipe.id }) {
+                    self?.recipes[index] = updatedRecipe
                 }
             })
             .store(in: &cancellables)

@@ -8,15 +8,15 @@
 import Foundation
 
 struct Recipe: Codable, Identifiable {
-    let id: Int
-    let recipeName: String
-    let ingredients: [String]
-    let cookingTime: Int
-    let difficulty: Int
-    let cuisine: String
-    let description: String
-    let photoLink: String
-    let averageRating: Double
+    var id: Int
+    var recipeName: String
+    var ingredients: [String]
+    var cookingTime: Int
+    var difficulty: Int
+    var cuisine: String
+    var description: String
+    var photoLink: String
+    var averageRating: Double
 
     enum CodingKeys: String, CodingKey {
         case id = "_id"

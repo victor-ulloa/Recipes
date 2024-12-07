@@ -35,7 +35,7 @@ class NetworkManager {
             .eraseToAnyPublisher()
     }
     
-    func deleteRecipe(by id: Int) -> AnyPublisher<Void, Error> {
+    func deleteRecipe(id: Int) -> AnyPublisher<Void, Error> {
         guard let url = URL(string: "\(baseURL)/\(id)") else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
@@ -50,7 +50,7 @@ class NetworkManager {
             .eraseToAnyPublisher()
     }
     
-    func addRecipe(_ recipe: Recipe) -> AnyPublisher<Recipe?, Error> {
+    func createRecipe(_ recipe: Recipe) -> AnyPublisher<Recipe, Error> {
         guard let url = URL(string: baseURL) else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
@@ -67,13 +67,31 @@ class NetworkManager {
         }
         
         return URLSession.shared.dataTaskPublisher(for: request)
-            .tryMap { response -> Recipe? in
-                let httpResponse = response.response as? HTTPURLResponse
-                guard httpResponse?.statusCode == 201 else {
-                    throw URLError(.badServerResponse)
-                }
-                return try? JSONDecoder().decode(Recipe.self, from: response.data) // Handle missing body gracefully
-            }
+            .map { $0.data }
+            .decode(type: Recipe.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+    
+    func editRecipe(_ recipe: Recipe) -> AnyPublisher<Recipe, Error> {
+        guard let url = URL(string: "\(baseURL)/\(recipe.id)") else {
+            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let data = try JSONEncoder().encode(recipe)
+            request.httpBody = data
+        } catch {
+            return Fail(error: error).eraseToAnyPublisher()
+        }
+        
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map { $0.data }
+            .decode(type: Recipe.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }

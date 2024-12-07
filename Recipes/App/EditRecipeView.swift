@@ -1,5 +1,5 @@
 //
-//  AddRecipeView.swift
+//  EditRecipeView.swift
 //  Recipes
 //
 //  Created by Victor Ulloa on 2024-12-06.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct AddRecipeView: View {
-    @State private var recipe = Recipe(id: 0, recipeName: "", ingredients: [], cookingTime: 0, difficulty: 0, cuisine: "", description: "", photoLink: "", averageRating: 0.0)
+struct EditRecipeView: View {
+    @State var recipe: Recipe
     var onSave: (Recipe) -> Void
 
     var body: some View {
@@ -27,7 +27,7 @@ struct AddRecipeView: View {
                 TextField("Photo Link", text: $recipe.photoLink)
                 TextField("Rating", value: $recipe.averageRating, formatter: NumberFormatter())
             }
-            .navigationTitle("Add Recipe")
+            .navigationTitle("Edit Recipe")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
