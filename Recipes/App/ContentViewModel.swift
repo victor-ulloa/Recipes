@@ -11,7 +11,7 @@ import Combine
 final class ContentViewModel: ObservableObject {
     @Published var recipes: [Recipe] = []
     @Published var errorMessage: IdentifiableError?
-
+    
     private var cancellables = Set<AnyCancellable>()
     private let networkManager = NetworkManager()
     
@@ -26,7 +26,7 @@ final class ContentViewModel: ObservableObject {
             })
             .store(in: &cancellables)
     }
-
+    
     func deleteRecipe(at offsets: IndexSet) {
         offsets.forEach { index in
             let recipeToDelete = recipes[index]
@@ -41,5 +41,21 @@ final class ContentViewModel: ObservableObject {
                 })
                 .store(in: &cancellables)
         }
+    }
+    
+    func addRecipe(_ recipe: Recipe) {
+        networkManager.addRecipe(recipe)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    self.errorMessage = IdentifiableError(message: error.localizedDescription)
+                }
+            }, receiveValue: { [weak self] newRecipe in
+                if let recipe = newRecipe {
+                    self?.recipes.append(recipe)
+                } else {
+                    self?.recipes.append(recipe) // Add the original recipe for local display
+                }
+            })
+            .store(in: &cancellables)
     }
 }

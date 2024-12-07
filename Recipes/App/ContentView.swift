@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = ContentViewModel()
-    
+    @State private var showAddRecipe = false
+
     var body: some View {
         NavigationView {
             List {
@@ -31,6 +32,18 @@ struct ContentView: View {
                 viewModel.loadAllRecipes()
             }
             .navigationTitle("Recipes")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddRecipe.toggle() }) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddRecipe) {
+                AddRecipeView { newRecipe in
+                    viewModel.addRecipe(newRecipe)
+                }
+            }
             .alert(item: $viewModel.errorMessage) { error in
                 Alert(title: Text("Error"), message: Text(error.message), dismissButton: .default(Text("OK")))
             }
