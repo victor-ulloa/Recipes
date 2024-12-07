@@ -12,17 +12,20 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            List(viewModel.recipes) { recipe in
-                VStack(alignment: .leading) {
-                    Text(recipe.recipeName)
-                        .font(.headline)
-                    Text(recipe.cuisine)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Text("Rating \(recipe.averageRating, specifier: "%.2f") ⭐️")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+            List {
+                ForEach(viewModel.recipes) { recipe in
+                    VStack(alignment: .leading) {
+                        Text(recipe.recipeName)
+                            .font(.headline)
+                        Text(recipe.cuisine)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text("Rating \(recipe.averageRating, specifier: "%.2f") ⭐️")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .onDelete(perform: viewModel.deleteRecipe(at:))
             }
             .onAppear {
                 viewModel.loadAllRecipes()

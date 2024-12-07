@@ -5,6 +5,7 @@
 //  Created by Victor Ulloa on 2024-11-14.
 //
 
+import Foundation
 import Combine
 
 final class ContentViewModel: ObservableObject {
@@ -24,5 +25,21 @@ final class ContentViewModel: ObservableObject {
                 self?.recipes = recipes
             })
             .store(in: &cancellables)
+    }
+
+    func deleteRecipe(at offsets: IndexSet) {
+        offsets.forEach { index in
+            let recipeToDelete = recipes[index]
+            
+            networkManager.deleteRecipe(by: recipeToDelete.id)
+                .sink(receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        self.errorMessage = IdentifiableError(message: error.localizedDescription)
+                    }
+                }, receiveValue: { [weak self] in
+                    self?.recipes.remove(at: index)
+                })
+                .store(in: &cancellables)
+        }
     }
 }

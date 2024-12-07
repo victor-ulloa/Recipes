@@ -34,4 +34,19 @@ class NetworkManager {
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
+    
+    func deleteRecipe(by id: Int) -> AnyPublisher<Void, Error> {
+        guard let url = URL(string: "\(baseURL)/\(id)") else {
+            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map { _ in () } // Map response to Void as we don't expect any data
+            .mapError { $0 as Error } // Map URLError to generic Error
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
 }
